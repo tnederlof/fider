@@ -31,7 +31,6 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG || secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || secrets.SENTRY_PROJECT }}
-          SENTRY_BASE_URL: ${{ vars.SENTRY_BASE_URL || secrets.SENTRY_BASE_URL }}
         with:
           skill: tnederlof/fider:frontend-observability-triage
           prompt: |
@@ -55,4 +54,3 @@ jobs:
             4. Post exactly one structured triage comment back on the GitHub issue.
             5. Do not change code, open a PR, or create follow-up automation.
           warp_api_key: ${{ secrets.WARP_API_KEY }}
-          profile: ${{ vars.WARP_AGENT_PROFILE || '' }}

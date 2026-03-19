@@ -23,6 +23,7 @@
   "action.voted": "Röstade!",
   "editor.markdownmode": "Växla till markdown-redigeraren",
   "editor.richtextmode": "Växla till RTF-redigerare",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Avslutad",
   "enum.poststatus.declined": "Nekad",
   "enum.poststatus.deleted": "Borttagen",

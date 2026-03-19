@@ -23,6 +23,7 @@
   "action.voted": "已投票！",
   "editor.markdownmode": "切换到 Markdown 编辑器",
   "editor.richtextmode": "切换到富文本编辑器",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "完成",
   "enum.poststatus.declined": "拒绝",
   "enum.poststatus.deleted": "删除",

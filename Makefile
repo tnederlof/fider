@@ -4,6 +4,7 @@
 
 LDFLAGS += -X github.com/getfider/fider/app/pkg/env.commithash=${COMMITHASH}
 LDFLAGS += -X github.com/getfider/fider/app/pkg/env.version=${VERSION}
+DOCKER_COMPOSE ?= docker compose
 
 
 
@@ -12,7 +13,7 @@ LDFLAGS += -X github.com/getfider/fider/app/pkg/env.version=${VERSION}
 run: ## Run Fider
 	godotenv -f .env ./fider
 
-migrate: ## Run all database migrations
+migrate: dev-up wait-pgdev ## Run all database migrations
 	godotenv -f .env ./fider migrate
 
 
@@ -101,11 +102,19 @@ test-e2e-ui-scenario: ## Run specific E2E test scenario (use NAME="scenario name
 
 test-e2e-ui-scenario-headed: ## Run specific E2E test scenario with visible browser (use NAME="scenario name")
 	HEADED=true npx cucumber-js e2e/features/ui/**/*.feature --require-module ts-node/register --require 'e2e/**/*.ts' --publish-quiet --name "$(NAME)"
+demo-preflight: ## Check that the local app is reachable for the Sentry demo
+	@curl -fsS http://localhost:3000/ >/dev/null || (echo "Local app is not reachable at http://localhost:3000. Start it with 'make watch' first." && exit 1)
+
+demo-trigger-sentry: demo-preflight ## Trigger the demo frontend crash that should report to Sentry
+	E2E_HOST_MODE=single E2E_BASE_URL=http://localhost:3000 E2E_LOGIN_BASE_URL=http://localhost:3000 npx cucumber-js e2e/features/ui/sentry_demo.feature --require-module ts-node/register --require 'e2e/**/*.ts' --publish-quiet
+
+demo-trigger-sentry-headed: demo-preflight ## Trigger the demo frontend crash with a visible browser
+	HEADED=true E2E_HOST_MODE=single E2E_BASE_URL=http://localhost:3000 E2E_LOGIN_BASE_URL=http://localhost:3000 npx cucumber-js e2e/features/ui/sentry_demo.feature --require-module ts-node/register --require 'e2e/**/*.ts' --publish-quiet
 
 
 
 ##@ Running (Watch Mode)
-
+watch: dev-down clean dev-up wait-pgdev build-ssr build-ui
 watch:
 	make -j4 watch-server watch-ui
 
@@ -130,6 +139,25 @@ lint-ui: ## Lint ui code
 
 
 ##@ Miscellaneous
+
+dev-up: ## Start local development dependencies
+	$(DOCKER_COMPOSE) up -d pgdev smtp
+
+wait-pgdev: ## Wait until the local development postgres is ready
+	@until $(DOCKER_COMPOSE) exec -T pgdev pg_isready -U fider >/dev/null 2>&1; do \
+		echo "Waiting for pgdev to be ready..."; \
+		sleep 1; \
+	done
+
+dev-down: ## Stop local development dependencies
+	$(DOCKER_COMPOSE) down --volumes
+	@for port in 1025 8025; do \
+		cid=$$(docker ps -q --filter "publish=$$port" 2>/dev/null); \
+		if [ -n "$$cid" ]; then \
+			echo "Stopping container $$cid occupying port $$port..."; \
+			docker stop $$cid; \
+		fi; \
+	done
 
 clean: ## Remove all build-generated content
 	rm -rf ./dist

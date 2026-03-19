@@ -1,7 +1,7 @@
 import { Before, BeforeAll, AfterAll, After, setDefaultTimeout } from "@cucumber/cucumber"
 import debug from "debug"
 import * as playwright from "@playwright/test"
-import { getLatestLinkSentTo } from "./step_definitions/fns"
+import { getLatestLinkSentTo, getE2EHostMode, getLoginBaseURL, getUserEmail } from "./step_definitions/fns"
 import { FiderWorld } from "./world"
 
 setDefaultTimeout(10 * 1000) // 10 seconds for CI environments
@@ -49,17 +49,32 @@ async function createNewSite() {
     ignoreHTTPSErrors: true,
   })
   const page = await context.newPage()
+  const adminEmail = getUserEmail(tenantName, "admin")
+  const hostMode = getE2EHostMode()
+  const signUpURL = `${getLoginBaseURL()}/signup`
 
-  const adminEmail = `admin-${tenantName}@fider.io`
-  //Create site
-  await page.goto("https://login.dev.fider.io:3000/signup")
+  // Create site if needed
+  await page.goto(signUpURL)
+  if (hostMode === "single") {
+    const hasSignUpForm = await page
+      .locator("#p-signup")
+      .isVisible()
+      .catch(() => false)
+    if (!hasSignUpForm) {
+      await page.close()
+      return
+    }
+  }
+  await page.goto(signUpURL)
   await page.fill("#input-name", "admin")
   await page.fill("#input-email", adminEmail)
   await page.fill("#input-tenantName", tenantName)
-  await page.fill("#input-subdomain", tenantName)
+  if (hostMode === "multi") {
+    await page.fill("#input-subdomain", tenantName)
+  }
   await page.check("#input-legalAgreement")
   await page.click(".c-button--primary")
-
+  // Activate site
   //Activate site
   const activationLink = await getLatestLinkSentTo(adminEmail)
   await page.goto(activationLink)

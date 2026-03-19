@@ -23,6 +23,7 @@
   "action.voted": "Zahlasované!",
   "editor.markdownmode": "Prepnúť na markdown editor",
   "editor.richtextmode": "Prepnúť na bohatý textový editor",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Dokončené",
   "enum.poststatus.declined": "Odmietnuté",
   "enum.poststatus.deleted": "Vymazané",

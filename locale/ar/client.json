@@ -23,6 +23,7 @@
   "action.voted": "تم التصويت!",
   "editor.markdownmode": "الانتقال إلى محرر النصوص (Markdown)",
   "editor.richtextmode": "التبديل إلى محرر نص منسق",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "اكتمل",
   "enum.poststatus.declined": "مرفوض",
   "enum.poststatus.deleted": "محذوف",

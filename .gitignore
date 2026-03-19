@@ -27,3 +27,6 @@ fider_schema.sql
 fider.sql
 .zed/debug.json
 WARP.md
+
+# Sentry Config File
+.env.sentry-build-plugin

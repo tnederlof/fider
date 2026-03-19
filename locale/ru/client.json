@@ -23,6 +23,7 @@
   "action.voted": "Проголосовал!",
   "editor.markdownmode": "Переключиться на редактор разметки",
   "editor.richtextmode": "Переключиться на редактор форматированного текста",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Выполнено",
   "enum.poststatus.declined": "Отклонено",
   "enum.poststatus.deleted": "Удалено",

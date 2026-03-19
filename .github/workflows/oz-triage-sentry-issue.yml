@@ -1,0 +1,58 @@
+name: oz-triage-sentry-issue
+
+on:
+  issues:
+    types:
+      - opened
+      - labeled
+
+jobs:
+  triage:
+    name: triage-sentry-issue
+    if: >-
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'oz-triage')) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'oz-triage')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run Oz triage
+        uses: warpdotdev/oz-agent-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || secrets.SENTRY_PROJECT }}
+          SENTRY_BASE_URL: ${{ vars.SENTRY_BASE_URL || secrets.SENTRY_BASE_URL }}
+        with:
+          skill: tnederlof/fider:frontend-observability-triage
+          prompt: |
+            Triage GitHub issue #${{ github.event.issue.number }} as a frontend observability investigation.
+
+            Repository context:
+            - Repository: ${{ github.repository }}
+            - Issue URL: ${{ github.event.issue.html_url }}
+            - Issue number: ${{ github.event.issue.number }}
+            - Issue title: ${{ github.event.issue.title }}
+            - Issue labels: ${{ join(github.event.issue.labels.*.name, ', ') }}
+            - Trigger action: ${{ github.event.action }}
+
+            Issue body:
+            ${{ github.event.issue.body || 'No description provided.' }}
+
+            Required outcome:
+            1. Read the issue and any comments with gh.
+            2. Use the available Sentry credentials and issue context to gather the minimum useful observability evidence.
+            3. Inspect the checked out repository for the most likely cause.
+            4. Post exactly one structured triage comment back on the GitHub issue.
+            5. Do not change code, open a PR, or create follow-up automation.
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          profile: ${{ vars.WARP_AGENT_PROFILE || '' }}

@@ -23,6 +23,7 @@
   "action.voted": "Oy verildi!",
   "editor.markdownmode": "Markdown düzenleyicisine geç",
   "editor.richtextmode": "Zengin metin düzenleyicisine geç",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Tamamlandı",
   "enum.poststatus.declined": "Reddedildi",
   "enum.poststatus.deleted": "Silindi",

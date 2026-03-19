@@ -1,10 +1,10 @@
 import { Given, Then } from "@cucumber/cucumber"
 import { FiderWorld } from "../world"
 import expect from "expect"
-import { getLatestCodeSentTo } from "./fns"
+import { getAnonymousUserEmail, getAppBaseURL, getLatestCodeSentTo } from "./fns"
 
 Given("I go to the home page", async function (this: FiderWorld) {
-  await this.page.goto(`https://${this.tenantName}.dev.fider.io:3000/`)
+  await this.page.goto(`${getAppBaseURL(this.tenantName)}/`)
 })
 
 Then("I should be on the home page", async function (this: FiderWorld) {
@@ -38,7 +38,7 @@ Given("I click enter your suggestion", async function () {
 })
 
 Given("I type my email address", async function (this: FiderWorld) {
-  const userEmail = `$user-${this.tenantName}@fider.io`
+  const userEmail = getAnonymousUserEmail(this.tenantName)
   await this.page.type("#input-email", userEmail)
 })
 
@@ -62,7 +62,7 @@ Given("I click submit your feedback", async function () {
 })
 
 Then("I should be on the confirmation code page", async function (this: FiderWorld) {
-  const userEmail = `$user-${this.tenantName}@fider.io`
+  const userEmail = getAnonymousUserEmail(this.tenantName)
   // Wait for the code entry field to appear
   await this.page.waitForSelector("#input-code", { timeout: 5000 })
   // Check for code entry instruction message
@@ -70,7 +70,7 @@ Then("I should be on the confirmation code page", async function (this: FiderWor
 })
 
 Given("I enter the confirmation code", async function (this: FiderWorld) {
-  const userEmail = `$user-${this.tenantName}@fider.io`
+  const userEmail = getAnonymousUserEmail(this.tenantName)
   const code = await getLatestCodeSentTo(userEmail)
 
   // Enter the code in the UI

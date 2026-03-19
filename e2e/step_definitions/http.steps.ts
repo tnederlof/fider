@@ -1,6 +1,7 @@
 import { Given, Then, When } from "@cucumber/cucumber"
 import { FiderWorld } from "e2e/world"
 import expect from "expect"
+import { getAppBaseURL } from "./fns"
 
 let requestUrl: string
 let requestOpts: RequestInit
@@ -10,7 +11,7 @@ let response: Response
 let responseBody: string
 
 const getFullUrl = (world: FiderWorld, url: string): string => {
-  return url.startsWith("/") ? `https://${world.tenantName}.dev.fider.io:3000${url}` : url
+  return url.startsWith("/") ? `${getAppBaseURL(world.tenantName)}${url}` : url
 }
 
 Given("I prepare a {string} request to {string}", async function (this: FiderWorld, method: string, url: string) {

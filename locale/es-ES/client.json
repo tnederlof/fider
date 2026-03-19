@@ -23,6 +23,7 @@
   "action.voted": "¡Votado!",
   "editor.markdownmode": "Cambiar al editor de rebajas",
   "editor.richtextmode": "Cambiar al editor de texto enriquecido",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Completado",
   "enum.poststatus.declined": "Rechazado",
   "enum.poststatus.deleted": "Eliminado",

@@ -1,5 +1,6 @@
-/* eslint-disable no-undef */
+/* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
 const path = require("path")
 const glob = require("glob")
 
@@ -12,6 +13,7 @@ const commercialFolder = path.resolve(__dirname, "commercial")
 const localeFolder = path.resolve(__dirname, "locale")
 
 const isProduction = process.env.NODE_ENV === "production"
+const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN)
 
 const plugins = [
   new MiniCssExtractPlugin({
@@ -119,7 +121,18 @@ module.exports = {
       },
     },
   },
-  plugins,
+  plugins: [
+    ...plugins,
+    ...(isProduction && hasSentryAuthToken
+      ? [
+          sentryWebpackPlugin({
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            org: "warp-demo",
+            project: "fider",
+          }),
+        ]
+      : []),
+  ],
   stats: {
     assets: true,
     children: false,

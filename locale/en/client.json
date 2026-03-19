@@ -23,6 +23,7 @@
   "action.voted": "Voted!",
   "editor.markdownmode": "Switch to markdown editor",
   "editor.richtextmode": "Switch to rich text editor",
+  "enum.poststatus.archived": "Archived",
   "enum.poststatus.completed": "Completed",
   "enum.poststatus.declined": "Declined",
   "enum.poststatus.deleted": "Deleted",

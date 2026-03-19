@@ -23,6 +23,7 @@
   "action.voted": "Gestemd!",
   "editor.markdownmode": "Overschakelen naar markdown-editor",
   "editor.richtextmode": "Overschakelen naar rich text-editor",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Voltooid",
   "enum.poststatus.declined": "Afgewezen",
   "enum.poststatus.deleted": "Verwijderd",

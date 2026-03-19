@@ -1,4 +1,5 @@
 import "@fider/assets/styles/index.scss"
+import * as Sentry from "@sentry/react"
 
 import React, { Suspense } from "react"
 import { createRoot } from "react-dom/client"
@@ -16,6 +17,7 @@ const Loading = () => (
 )
 
 const logProductionError = (err: Error) => {
+  Sentry.captureException(err)
   if (Fider.isProduction()) {
     console.error(err)
     actions.logError(`react.ErrorBoundary: ${err.message}`, err)
@@ -62,6 +64,13 @@ const bootstrapApp = (i18n: I18n) => {
   }
 }
 const fider = Fider.initialize()
+
+Sentry.init({
+  dsn: "https://01e0aad401bafa7d26aba5936e912bd6@o4510951662223360.ingest.us.sentry.io/4511067564736512",
+  sendDefaultPii: true,
+  environment: "development",
+  debug: true,
+})
 __webpack_nonce__ = fider.session.contextID
 __webpack_public_path__ = `${fider.settings.assetsURL}/assets/`
 activateI18N(fider.currentLocale).then(bootstrapApp).catch(bootstrapApp)

@@ -23,6 +23,7 @@
   "action.voted": "Ψηφίστηκε!",
   "editor.markdownmode": "Μετάβαση στο πρόγραμμα επεξεργασίας markdown",
   "editor.richtextmode": "Μετάβαση σε πρόγραμμα επεξεργασίας εμπλουτισμένου κειμένου",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "Ολοκληρωμένο",
   "enum.poststatus.declined": "Απορρίφθηκε",
   "enum.poststatus.deleted": "Διαγραμμένο",

@@ -23,6 +23,7 @@
   "action.voted": "رأی داده شد!",
   "editor.markdownmode": "تغییر به ویرایشگر مارک‌داون",
   "editor.richtextmode": "تغییر به ویرایشگر متن غنی",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "تکمیل‌شده",
   "enum.poststatus.declined": "رد شده",
   "enum.poststatus.deleted": "حذف شده",

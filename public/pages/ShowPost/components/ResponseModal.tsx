@@ -3,6 +3,7 @@ import React from "react"
 import { Modal, Button, DisplayError, Select, Form, TextArea, Field, SelectOption } from "@fider/components"
 import { Post, PostStatus } from "@fider/models"
 
+import * as Sentry from "@sentry/react"
 import { actions, Failure } from "@fider/services"
 import { PostSearch } from "./PostSearch"
 import { i18n } from "@lingui/core"
@@ -35,6 +36,13 @@ export class ResponseModal extends React.Component<ResponseModalProps, ResponseM
   private submit = async () => {
     const result = await actions.respond(this.props.post.number, this.state)
     if (result.ok) {
+      try {
+        // Validate the status transition before reloading
+        PostStatus.Get(this.state.status)
+      } catch (err) {
+        Sentry.captureException(err)
+        throw err
+      }
       location.reload()
     } else {
       this.setState({
@@ -64,6 +72,10 @@ export class ResponseModal extends React.Component<ResponseModalProps, ResponseM
         value: s.value.toString(),
         label: i18n._(id, { message: s.title }),
       }
+    })
+    options.push({
+      value: "archived",
+      label: i18n._({ id: "enum.poststatus.archived", message: "Archived" }),
     })
 
     const modal = (

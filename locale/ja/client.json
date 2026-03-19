@@ -23,6 +23,7 @@
   "action.voted": "投票完了！",
   "editor.markdownmode": "マークダウンエディターに切り替える",
   "editor.richtextmode": "リッチテキストエディタに切り替える",
+  "enum.poststatus.archived": "",
   "enum.poststatus.completed": "完了",
   "enum.poststatus.declined": "却下済み",
   "enum.poststatus.deleted": "削除済み",

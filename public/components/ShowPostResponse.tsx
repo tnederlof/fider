@@ -7,6 +7,7 @@ import HeroIconSparkles from "@fider/assets/images/heroicons-sparkles-outline.sv
 import HeroIconLightBulb from "@fider/assets/images/heroicons-lightbulb.svg"
 import HeroIconThumbsUp from "@fider/assets/images/heroicons-thumbsup.svg"
 import HeroIconThumbsDown from "@fider/assets/images/heroicons-thumbsdown.svg"
+import HeroIconInbox from "@fider/assets/images/heroicons-inbox.svg"
 import { HStack, VStack } from "./layout"
 import { Trans } from "@lingui/react/macro"
 import { useFider } from "@fider/hooks"
@@ -74,6 +75,8 @@ const getLozengeProps = (status: PostStatus): { icon: SpriteSymbol; bg: string; 
       return { icon: HeroIconSparkles, bg: "bg-blue-100", color: "text-blue-700", border: "border-blue-400" }
     case PostStatus.Open:
       return { icon: HeroIconLightBulb, bg: "bg-blue-100", color: "text-blue-700", border: "border-blue-400" }
+    case PostStatus.Archived:
+      return { icon: HeroIconInbox, bg: "bg-gray-100", color: "text-gray-700", border: "border-gray-400" }
     default:
       return { icon: HeroIconSparkles, bg: "bg-blue-100", color: "text-blue-700", border: "border-blue-400" }
   }
@@ -95,6 +98,8 @@ const getStatusTranslation = (status: PostStatus): JSX.Element => {
       return <Trans id="enum.poststatus.duplicate">Duplicate</Trans>
     case PostStatus.Deleted:
       return <Trans id="enum.poststatus.deleted">Deleted</Trans>
+    case PostStatus.Archived:
+      return <Trans id="enum.poststatus.archived">Archived</Trans>
     default:
       return <>{status.title}</>
   }

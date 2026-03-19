@@ -68,6 +68,14 @@ const fider = Fider.initialize()
 Sentry.init({
   dsn: "https://01e0aad401bafa7d26aba5936e912bd6@o4510951662223360.ingest.us.sentry.io/4511067564736512",
   sendDefaultPii: true,
+  integrations: [
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+  replaysSessionSampleRate: 1.0,
+  replaysOnErrorSampleRate: 1.0,
   environment: "development",
   debug: true,
 })

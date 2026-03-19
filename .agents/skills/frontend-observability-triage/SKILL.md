@@ -4,66 +4,53 @@ description: Triage frontend production regressions and observability-driven Git
 ---
 
 # Frontend observability triage
-Use this skill when a GitHub issue created from Sentry should trigger a diagnosis-only Oz run.
+Produce a diagnosis-only comment that helps a maintainer decide the next step quickly.
 
-## Required runtime contract
-
-This skill expects:
-
-- a checked-out copy of this repository
-- `GH_TOKEN` for reading and commenting on the issue
-- `SENTRY_AUTH_TOKEN` for Sentry API access
+## Runtime contract
+Require:
+- checked-out copy of this repository
+- `GH_TOKEN`
+- `SENTRY_AUTH_TOKEN`
 - `SENTRY_ORG`
 - `SENTRY_PROJECT`
-- the GitHub issue number in the prompt, or enough issue context to fetch it with `gh`
+- GitHub issue number or enough context to fetch it with `gh`
 
 Optional:
-
 - `SENTRY_BASE_URL` for non-default Sentry hosts
 
-If any required credential is missing, stop and report that triage is blocked by workflow configuration.
+If required credentials are missing, stop and report that triage is blocked by workflow configuration.
 
 ## Guardrails
-
 - Diagnose only.
 - Do not modify files.
 - Do not open a PR.
-- Do not propose multi-stage automation from inside the run.
+- Do not suggest additional automation from inside the run.
 - Do not paste raw Sentry payloads into GitHub.
 - Do not print secrets.
 
 ## Workflow
-
-### 1. Read the GitHub issue
-
-Read the issue body and comments first.
-
+### 1. Read the GitHub issue first
 Prefer:
 
 ```sh
 gh issue view <ISSUE_NUMBER> --comments
 ```
 
-Extract the useful context already present in the issue:
-
+Extract only the signals that matter:
 - Sentry issue link or ID
-- replay link
-- trace link
-- release
-- environment
+- replay / trace links
 - event IDs
-- route, transaction, browser, or user-flow clues
+- release / environment
+- route, browser, transaction, or user-flow clues
 
 ### 2. Pull the minimum useful Sentry context
+Use Sentry only far enough to support a diagnosis.
 
-Use Sentry only to enrich the issue enough to form a diagnosis.
-
-Prefer this order:
-
+Preferred order:
 1. issue details
 2. recommended or latest event
-3. recent full events if needed
-4. release details if a release is known
+3. recent full events only if needed
+4. release details only if a release is known
 
 Typical lookups:
 
@@ -79,28 +66,24 @@ curl -fsSL \
   --header "Authorization: Bearer $SENTRY_AUTH_TOKEN"
 ```
 
-Focus on:
-
+Capture only high-signal facts:
 - exception type and message
-- best available stack frames
-- release and environment
-- route, transaction, browser, and URL tags
-- event count and user count
+- best stack clue
+- release / environment
+- URL, route, transaction, browser tags
+- event count / user count if materially useful
 - whether replay or trace exists
-- whether frames are source-mapped or still minified
+- whether frames are source-mapped or minified
 
 ### 3. Inspect the repo
-
-Use the Sentry issue plus stacktrace to inspect the most likely code path in this repository.
+Use the stacktrace and event context to inspect the most likely local code path.
 
 Prioritize:
-
 - exact files and symbols from the stacktrace
 - nearby callers and related models
-- recent history for suspect files if a release suggests a regression
+- recent history only if a release suggests a regression
 
-Common files to inspect for frontend runtime failures in this repo:
-
+Common high-signal areas in this repo:
 - `public/index.tsx`
 - `public/components/ErrorBoundary.tsx`
 - `public/services/actions/infra.ts`
@@ -112,82 +95,82 @@ Common files to inspect for frontend runtime failures in this repo:
 - `app/models/enum/*.go`
 - `app/handlers/**/*.go`
 
-High-signal heuristics for this repo:
-
+Heuristics that often pay off here:
 - frontend/backend enum drift
-- config-driven client parsing failures
+- config-driven parsing failures
 - secondary interaction crashes in dropdowns, modals, or editors
-- release/source-map hygiene problems that make stacks unreadable
+- missing source maps hiding an otherwise obvious code path
 
 ### 4. Form a diagnosis
-
-Aim to answer:
-
+Answer:
 - what likely broke
 - which user flow is impacted
 - which files are most suspect
-- whether the best immediate response is mitigation, rollback, or a code fix
+- whether the immediate response is mitigation, rollback, or a code fix
 - how confident the diagnosis is
 
-Use these confidence levels:
-
+Confidence:
 - **High**: direct event evidence plus a clear matching code path
-- **Medium**: strong stacktrace and code evidence, but some ambiguity remains
+- **Medium**: strong evidence, but some ambiguity remains
 - **Low**: multiple plausible causes remain
 
-Use these severity levels:
-
+Severity:
 - **High**: hard crash in a core flow or broad production impact
 - **Medium**: limited-scope crash or secondary-flow breakage
 - **Low**: edge-case failure or mostly observability hygiene
 
-### 5. Comment on the GitHub issue
+### 5. Post one compact triage comment
+Post exactly one structured comment with `gh issue comment`.
 
-Post one structured triage comment with `gh issue comment`.
+Optimize for fast scanning:
+- Start with a real TL;DR.
+- Prefer bullets over paragraphs.
+- Keep sections short.
+- Do not repeat the same point in Summary, Root cause, and Recommended action.
+- List at most 3 suspect files unless more are essential.
+- Omit empty sections.
+- Include Open questions only if they materially affect confidence or next steps.
 
 Use this format:
 
 ```markdown
 ## Frontend observability triage
 
-### Summary
-<1-3 sentence diagnosis>
+### TL;DR
+- **What broke:** <1 sentence>
+- **Impact:** <1 sentence>
+- **Next action:** <1 sentence>
 
-### Severity
-<high|medium|low> — <why>
-
-### Confidence
-<high|medium|low> — <why>
-
-### Impacted user flow
-- ...
+### Severity / confidence
+- **Severity:** <high|medium|low> — <brief why>
+- **Confidence:** <high|medium|low> — <brief why>
 
 ### Evidence
-- Sentry issue: ...
-- Replay: ...
-- Trace: ...
+- Sentry issue / event: ...
+- Replay / trace: ...
 - Release / environment: ...
 - Key error or stack clue: ...
+- Route / URL / browser clue: ...
 
 ### Likely root cause
-<explanation>
+<1 short paragraph or 2 bullets max>
 
 ### Suspect files
 - `path/to/file`: <why>
+- `path/to/file`: <why>
 
 ### Recommended action
-- Immediate mitigation: <rollback, config mitigation, or targeted fix direction>
-- Follow-up fix: <concrete next step>
+- **Immediate:** <rollback, mitigation, or "no rollback needed">
+- **Fix:** <concrete fix direction>
 
 ### Validation
-- <how to verify the mitigation or fix>
+- <how to verify the fix or mitigation>
 
 ### Open questions
-- ...
+- <only if important>
 ```
 
 Prefer `gh issue comment <ISSUE_NUMBER> --body-file <file>` over large inline shell strings.
 
 ## Stop condition
-
-Stop once the issue has a useful diagnosis, evidence, suspect files, and a recommended next action.
+Stop once the issue has a concise diagnosis, the strongest evidence, top suspect files, and a clear next action.

@@ -10,8 +10,8 @@ jobs:
   triage:
     name: triage-sentry-issue
     if: >-
-      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'oz-triage')) ||
-      (github.event.action == 'labeled' && github.event.label.name == 'oz-triage')
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'sentry')) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'sentry')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

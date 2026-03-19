@@ -1,10 +1,10 @@
 ---
 name: frontend-observability-triage
-description: Triage frontend production regressions and observability-driven GitHub issues for this repository, especially Sentry-created issues that include error links, replay links, trace links, release or environment metadata, or browser runtime failure details. Use when the goal is to investigate likely root cause, impacted user flow, suspect files, and recommended fix or rollback path. If the evidence supports a prudent high-confidence fix, implement the smallest safe change and open a PR that references the issue.
+description: Triage frontend production regressions and observability-driven GitHub issues for this repository, especially Sentry-created issues that include error links, trace links, release or environment metadata, or browser runtime failure details. Use when the goal is to investigate likely root cause, impacted user flow, suspect files, and recommended fix or rollback path. If the evidence supports a prudent high-confidence fix, implement the smallest safe change and open a PR that references the issue.
 ---
 
 # Frontend observability triage
-Start with diagnosis. If the evidence points to a small, prudent, high-confidence fix, carry it through to a PR.
+Start with diagnosis. If the evidence points to a small, prudent, high-confidence fix, carry it through to a PR. Do not stop at a comment-only outcome when the observed failure is directly explained by a narrow local code change that you can validate in this repo.
 
 ## Runtime contract
 Require:
@@ -40,7 +40,7 @@ gh issue view <ISSUE_NUMBER> --comments
 
 Extract only the signals that matter:
 - Sentry issue link or ID
-- replay / trace links
+- trace links
 - event IDs
 - release / environment
 - route, browser, transaction, or user-flow clues
@@ -51,9 +51,8 @@ Use Sentry only far enough to support a diagnosis.
 Preferred order:
 1. issue details
 2. recommended or latest event
-3. replay details if a replay exists
-4. recent full events only if needed
-5. release details only if a release is known
+3. recent full events only if needed
+4. release details only if a release is known
 
 Typical lookups:
 
@@ -68,21 +67,6 @@ curl -fsSL \
   "${SENTRY_BASE_URL:-https://sentry.io}/api/0/organizations/${SENTRY_ORG}/issues/${SENTRY_ISSUE_ID}/events/recommended/" \
   --header "Authorization: Bearer $SENTRY_AUTH_TOKEN"
 ```
-If the issue or event has a replay, retrieve replay metadata instead of only copying the replay link:
-
-```sh
-curl -fsSL \
-  "${SENTRY_BASE_URL:-https://sentry.io}/api/0/organizations/${SENTRY_ORG}/replays/${REPLAY_ID}/?projectSlug=${SENTRY_PROJECT}" \
-  --header "Authorization: Bearer $SENTRY_AUTH_TOKEN"
-```
-Build a direct replay URL for the final comment:
-
-```sh
-REPLAY_URL="${SENTRY_BASE_URL:-https://sentry.io}/organizations/${SENTRY_ORG}/replays/${REPLAY_ID}/"
-```
-
-Use the replay to extract the shortest useful explanation of what the user was doing immediately before the error. If the replay is available, it should materially inform the diagnosis.
-If replay metadata is unavailable but a replay ID exists, still include the direct replay URL in the comment. Do not emit a raw replay ID by itself unless no usable URL can be formed.
 
 Capture only high-signal facts:
 - exception type and message
@@ -90,8 +74,6 @@ Capture only high-signal facts:
 - release / environment
 - URL, route, transaction, browser tags
 - event count / user count if materially useful
-- replay URL
-- replay timeline clues: user actions, navigation changes, failed request timing, rage/dead clicks, and whether the error follows a specific interaction
 - whether trace exists
 - whether frames are source-mapped or minified
 
@@ -153,6 +135,13 @@ Choose **fix + PR** only when all of these are true:
 - the fix is small, prudent, and directly tied to the observed failure
 - validation is feasible in the current repo setup
 
+Strong candidates for **fix + PR** in this repository include:
+- frontend/backend enum drift where the backend already defines the intended value and the frontend crashes on parsing or rendering it
+- a hardcoded UI option that is inconsistent with an existing frontend model or shared contract
+- a direct stacktrace to one or two local frontend files plus a concrete repro from the issue
+
+When those signals are present, prefer opening a PR over stopping at diagnosis-only. If validation is partially blocked but the code path and fix are still high-confidence, prefer a draft PR with explicit validation notes over no PR.
+
 ### 6. If diagnosis-only, post one compact triage comment
 Post exactly one structured comment with `gh issue comment`.
 
@@ -163,8 +152,6 @@ Optimize for fast scanning:
 - Do not repeat the same point in Summary, Root cause, and Recommended action.
 - List at most 3 suspect files unless more are essential.
 - Omit empty sections.
-- If a replay exists, include the key replay finding in Evidence.
-- If a replay ID exists, prefer a clickable Sentry replay link over a raw replay ID.
 - Include Open questions only if they materially affect confidence or next steps.
 
 Use this format:
@@ -183,8 +170,7 @@ Use this format:
 
 ### Evidence
 - Sentry issue / event: ...
-- Replay / trace: [Replay](<direct sentry replay url>) / ...
-- Replay finding: <what the user did or what visibly happened right before the failure>
+- Trace: ...
 - Release / environment: ...
 - Key error or stack clue: ...
 - Route / URL / browser clue: ...
@@ -216,6 +202,8 @@ Keep the diagnosis quality bar from the earlier steps. Then:
 2. validate with the most relevant checks available
 3. open a PR that references the issue
 4. leave the issue with one compact comment that summarizes the diagnosis and links the PR
+
+For straightforward regressions, keep the diff tightly scoped to the failing contract. Example: if the frontend crashes because a backend-supported status value is missing locally, add the missing frontend enum/state handling and remove or align any hardcoded duplicate value instead of broad refactors nearby.
 
 Validation expectations:
 - run targeted tests when they exist

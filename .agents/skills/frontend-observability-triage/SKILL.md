@@ -49,8 +49,9 @@ Use Sentry only far enough to support a diagnosis.
 Preferred order:
 1. issue details
 2. recommended or latest event
-3. recent full events only if needed
-4. release details only if a release is known
+3. replay details if a replay exists
+4. recent full events only if needed
+5. release details only if a release is known
 
 Typical lookups:
 
@@ -65,6 +66,15 @@ curl -fsSL \
   "${SENTRY_BASE_URL:-https://sentry.io}/api/0/organizations/${SENTRY_ORG}/issues/${SENTRY_ISSUE_ID}/events/recommended/" \
   --header "Authorization: Bearer $SENTRY_AUTH_TOKEN"
 ```
+If the issue or event has a replay, retrieve replay metadata instead of only copying the replay link:
+
+```sh
+curl -fsSL \
+  "${SENTRY_BASE_URL:-https://sentry.io}/api/0/organizations/${SENTRY_ORG}/replays/${REPLAY_ID}/?projectSlug=${SENTRY_PROJECT}" \
+  --header "Authorization: Bearer $SENTRY_AUTH_TOKEN"
+```
+
+Use the replay to extract the shortest useful explanation of what the user was doing immediately before the error. If the replay is available, it should materially inform the diagnosis.
 
 Capture only high-signal facts:
 - exception type and message
@@ -72,7 +82,9 @@ Capture only high-signal facts:
 - release / environment
 - URL, route, transaction, browser tags
 - event count / user count if materially useful
-- whether replay or trace exists
+- replay ID and link
+- replay timeline clues: user actions, navigation changes, failed request timing, rage/dead clicks, and whether the error follows a specific interaction
+- whether trace exists
 - whether frames are source-mapped or minified
 
 ### 3. Inspect the repo
@@ -129,6 +141,7 @@ Optimize for fast scanning:
 - Do not repeat the same point in Summary, Root cause, and Recommended action.
 - List at most 3 suspect files unless more are essential.
 - Omit empty sections.
+- If a replay exists, include the key replay finding in Evidence.
 - Include Open questions only if they materially affect confidence or next steps.
 
 Use this format:
@@ -148,6 +161,7 @@ Use this format:
 ### Evidence
 - Sentry issue / event: ...
 - Replay / trace: ...
+- Replay finding: <what the user did or what visibly happened right before the failure>
 - Release / environment: ...
 - Key error or stack clue: ...
 - Route / URL / browser clue: ...

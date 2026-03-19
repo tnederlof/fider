@@ -73,8 +73,14 @@ curl -fsSL \
   "${SENTRY_BASE_URL:-https://sentry.io}/api/0/organizations/${SENTRY_ORG}/replays/${REPLAY_ID}/?projectSlug=${SENTRY_PROJECT}" \
   --header "Authorization: Bearer $SENTRY_AUTH_TOKEN"
 ```
+Build a direct replay URL for the final comment:
+
+```sh
+REPLAY_URL="${SENTRY_BASE_URL:-https://sentry.io}/organizations/${SENTRY_ORG}/replays/${REPLAY_ID}/"
+```
 
 Use the replay to extract the shortest useful explanation of what the user was doing immediately before the error. If the replay is available, it should materially inform the diagnosis.
+If replay metadata is unavailable but a replay ID exists, still include the direct replay URL in the comment. Do not emit a raw replay ID by itself unless no usable URL can be formed.
 
 Capture only high-signal facts:
 - exception type and message
@@ -82,7 +88,7 @@ Capture only high-signal facts:
 - release / environment
 - URL, route, transaction, browser tags
 - event count / user count if materially useful
-- replay ID and link
+- replay URL
 - replay timeline clues: user actions, navigation changes, failed request timing, rage/dead clicks, and whether the error follows a specific interaction
 - whether trace exists
 - whether frames are source-mapped or minified
@@ -142,6 +148,7 @@ Optimize for fast scanning:
 - List at most 3 suspect files unless more are essential.
 - Omit empty sections.
 - If a replay exists, include the key replay finding in Evidence.
+- If a replay ID exists, prefer a clickable Sentry replay link over a raw replay ID.
 - Include Open questions only if they materially affect confidence or next steps.
 
 Use this format:
@@ -160,7 +167,7 @@ Use this format:
 
 ### Evidence
 - Sentry issue / event: ...
-- Replay / trace: ...
+- Replay / trace: [Replay](<direct sentry replay url>) / ...
 - Replay finding: <what the user did or what visibly happened right before the failure>
 - Release / environment: ...
 - Key error or stack clue: ...

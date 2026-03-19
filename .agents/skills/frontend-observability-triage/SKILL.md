@@ -1,10 +1,10 @@
 ---
 name: frontend-observability-triage
-description: Triage frontend production regressions and observability-driven GitHub issues for this repository, especially Sentry-created issues that include error links, replay links, trace links, release or environment metadata, or browser runtime failure details. Use when the goal is to investigate likely root cause, impacted user flow, suspect files, and recommended fix or rollback path without immediately making code changes.
+description: Triage frontend production regressions and observability-driven GitHub issues for this repository, especially Sentry-created issues that include error links, replay links, trace links, release or environment metadata, or browser runtime failure details. Use when the goal is to investigate likely root cause, impacted user flow, suspect files, and recommended fix or rollback path. If the evidence supports a prudent high-confidence fix, implement the smallest safe change and open a PR that references the issue.
 ---
 
 # Frontend observability triage
-Produce a diagnosis-only comment that helps a maintainer decide the next step quickly.
+Start with diagnosis. If the evidence points to a small, prudent, high-confidence fix, carry it through to a PR.
 
 ## Runtime contract
 Require:
@@ -21,9 +21,11 @@ Optional:
 If required credentials are missing, stop and report that triage is blocked by workflow configuration.
 
 ## Guardrails
-- Diagnose only.
-- Do not modify files.
-- Do not open a PR.
+- Default to diagnosis-only unless the fix path is clearly warranted.
+- Do not modify files or open a PR for low-confidence or broad-scope issues.
+- Prefer the smallest safe fix over a broad cleanup or refactor.
+- Do not broaden scope beyond the observed production regression.
+- Do not make schema, migration, or cross-system contract changes from this workflow.
 - Do not suggest additional automation from inside the run.
 - Do not paste raw Sentry payloads into GitHub.
 - Do not print secrets.
@@ -137,7 +139,21 @@ Severity:
 - **Medium**: limited-scope crash or secondary-flow breakage
 - **Low**: edge-case failure or mostly observability hygiene
 
-### 5. Post one compact triage comment
+### 5. Decide whether to stop at triage or fix it
+Choose **diagnosis-only** if any of these are true:
+- confidence is not high
+- the fix would touch multiple unrelated areas
+- the correct fix depends on unclear product intent
+- the change needs backend, schema, or API coordination
+- the safest next step is rollback or mitigation
+
+Choose **fix + PR** only when all of these are true:
+- confidence is high
+- the suspected code path is local and well-bounded
+- the fix is small, prudent, and directly tied to the observed failure
+- validation is feasible in the current repo setup
+
+### 6. If diagnosis-only, post one compact triage comment
 Post exactly one structured comment with `gh issue comment`.
 
 Optimize for fast scanning:
@@ -193,5 +209,32 @@ Use this format:
 
 Prefer `gh issue comment <ISSUE_NUMBER> --body-file <file>` over large inline shell strings.
 
+### 7. If fix + PR, implement the minimum safe change
+Keep the diagnosis quality bar from the earlier steps. Then:
+
+1. change only the smallest code path that directly addresses the failure
+2. validate with the most relevant checks available
+3. open a PR that references the issue
+4. leave the issue with one compact comment that summarizes the diagnosis and links the PR
+
+Validation expectations:
+- run targeted tests when they exist
+- prefer `make lint` and `make test` before opening the PR when practical
+- if full validation is too expensive or blocked, state exactly what was and was not run in the PR body
+
+PR guidance:
+- use a focused branch and title
+- keep the diff narrow
+- include the issue reference in the PR body, for example `Refs #<ISSUE_NUMBER>` or `Closes #<ISSUE_NUMBER>` when appropriate
+- summarize the user flow, root cause, and validation in the PR body
+- prefer a draft PR if confidence is high on the code path but there is still some rollout or product risk
+
+Issue comment guidance after opening the PR:
+- keep the same triage structure above
+- update **Next action** to point at the PR
+- add a short PR line under Recommended action or Validation
+
 ## Stop condition
-Stop once the issue has a concise diagnosis, the strongest evidence, top suspect files, and a clear next action.
+Stop once the issue has either:
+- a concise diagnosis, strongest evidence, top suspect files, and a clear next action, or
+- a linked PR containing the smallest prudent fix with validation notes and issue reference

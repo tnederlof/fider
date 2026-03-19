@@ -54,3 +54,4 @@ jobs:
             5. Post exactly one structured triage comment back on the GitHub issue. If a PR was opened, include the PR link and summarize validation; otherwise explain the recommended next action.
             6. If confidence is not high or the fix is not safely bounded, stop at diagnosis-only and do not open a PR.
           warp_api_key: ${{ secrets.WARP_API_KEY }}
+          share: true

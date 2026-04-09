@@ -73,10 +73,6 @@ export class ResponseModal extends React.Component<ResponseModalProps, ResponseM
         label: i18n._(id, { message: s.title }),
       }
     })
-    options.push({
-      value: "archived",
-      label: i18n._({ id: "enum.poststatus.archived", message: "Archived" }),
-    })
 
     const modal = (
       <Modal.Window isOpen={this.props.showModal} onClose={this.props.onCloseModal} center={false} size="large">
